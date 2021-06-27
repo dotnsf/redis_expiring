@@ -25,7 +25,7 @@ When getting, application would  ..
 
 - Access to application:
 
-  - http://localhost:8080/
+  - http://localhost:8080/{num}
 
 
 ## Copyright

@@ -20,19 +20,25 @@ var redisClient = redis.createClient({
 app.use( express.Router() );
 
 //. top page
-var key = 'key';
-app.get( '/', function( req, res ){
+var default_key = 'key0';
+app.get( '/:index', function( req, res ){
   res.contentType( 'application/json; charset=utf8' ) ;
   if( redisClient ){
+    var key = req.params.index ? 'key' + req.params.index : default_key;
     redisClient.get( key, function( err, v ){
       var value = JSON.parse( JSON.stringify( v ) );
       if( err || !value ){
         if( err ){ console.log( { err } ) };
         value = ( new Date() ).toISOString().replace( /T/, ' ' ).replace( /\..+/, '' );  //. YYYY-MM-DD hh:nn:ss
-        redisClient.set( key, value, 'EX', 60 * 10 ); //. 10min
+        if( key == 'key0' ){
+          redisClient.set( key, value ); //. forever
+        }else{
+          var min = parseInt( req.params.index );
+          redisClient.set( key, value, 'EX', 60 * min ); //. min * 60 [sec]
+        }
       }
 
-      res.write( JSON.stringify( { value: value } ) );
+      res.write( JSON.stringify( { key: key, value: value } ) );
       res.end();
     });
   }else{
